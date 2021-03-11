@@ -246,5 +246,5 @@ async def on_message(message):
 
 
 
-client.run('ODE2MDQyMDA4NTAxODEzMjQ4.YD1MWA.8kPXubug4Va_LzIEZlznroV2PbU')
+client.run('heh')
 
