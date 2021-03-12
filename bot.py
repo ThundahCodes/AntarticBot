@@ -206,14 +206,9 @@ for filename in os.listdir('./cogs'):
         client.load_extension(f'cogs.{filename[:-3]}')
 
 
-filtered_words = ["nigger","nigga","rape","niggur","faggot","nigaa","NIGGA","NIGGER","RAPE","NIGGUR","FAGGOT","NIGAA","nikka","Nigga","nIgga","retard", "Retard","RETARD"]
-
 
 @client.event
 async def on_message(message):
-    for word in filtered_words:
-        if word in message.content:
-            await message.delete()
 
     await client.process_commands(message)
       
