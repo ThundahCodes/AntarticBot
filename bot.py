@@ -183,6 +183,7 @@ async def unban(ctx, *, member):
              await ctx.send(f'Unbanned {user.mention}')
              return 
 
+            
 @client.command()
 @commands.has_permissions(kick_members=True)
 async def mute(ctx, member : discord.Member):
@@ -205,7 +206,7 @@ for filename in os.listdir('./cogs'):
     if filename.endswith('.py'):
         client.load_extension(f'cogs.{filename[:-3]}')
 
-
+on_message_words = ['Worthy', 'Worthyy', 'Worthyyz', 'worthy', 'worthyy', 'worthyyz', 'worthyz', 'Worthyz']
 
 @client.event
 async def on_message(message):
@@ -242,6 +243,7 @@ async def on_message(message):
 @client.command(aliases=['drunk'])
 async def beer(ctx):
     await ctx.send("Beer :beer:")
+
     
 
 
