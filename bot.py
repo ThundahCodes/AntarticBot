@@ -239,6 +239,10 @@ async def on_message(message):
         await member_object.send("[" + message.author.display_name + "]" + mod_message)
 
 
+@client.command()
+async def beer(ctx):
+    await ctx.send("Beer :beer:")
+    
 
 
 client.run('heh')
