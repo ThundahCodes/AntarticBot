@@ -15,7 +15,7 @@ async def on_ready():
 async def ping(ctx):    #when >ping says Pong! and  shows ms
     await ctx.send(f'Pong! {round(client.latency * 1000)}ms')
 
-@client.command(aliases=['8ball', 'test']) #magic 8 ball (aliases say that it can use these commands)
+@client.command(aliases=['8ball']) #magic 8 ball (aliases say that it can use these commands)
 async def _8ball(ctx, *, question):
     responses = ['It is certain.',
                  'It is decidedly so.',
@@ -239,7 +239,7 @@ async def on_message(message):
         await member_object.send("[" + message.author.display_name + "]" + mod_message)
 
 
-@client.command()
+@client.command(aliases=['drunk'])
 async def beer(ctx):
     await ctx.send("Beer :beer:")
     
