@@ -1,43 +1,7 @@
-":one: No NSFW or blank Nicknames, it will be changed."
-":two: No NSFW profile pictures, you will be warned and told to change it."
-":three: **NOTHING AGAINTS DISCORD TOS** (that means talking about hacking others, betterdiscord, etc.)"
-":four: No Moderation role given to people under 14"
-":five: No begging for roles, if the staff wants to give it, they will."
-":six: Do not argue against staff. This will lead to a ban"
-":seven: Do not cause unnecessary drama with others, take it to DMs if needed"
-":eight: If you are in Voice Chat and you have background noise, please mute"
-":nine: Do not spam ping people in coding help, and do not mass ping people at all."
-":one::zero: **NOTHING ILLEGAL WHATSOEVER**"
-":one::one: Do not evade bans, or mutes. Action will be taken."
-":one::two: Do not raid, nuke or self-bot, it will be banned & reported."
-":one::three: Do not DM advertise, this will get you banned."
-":one::four: **ENGLISH ONLY!!!!**"
-
-**Staff**
-
-To apply for staff you need to be 14+ as explained earlier.
-
-Roles : 
-**Jr mod** : Basic moderation just watches over the server
-**Mod** : Watches over the server, can ban you.
-**Head Mod** : In charge of mods.
-**Admin+** : Trusted people of the server that earned their roles.
-**Coding Help** : These guys mostly help for coding and not direct staff members
-
-**Roles**
-
-@V.I.P 
-
-People that I know and are close to me.
-
-@Server Booster
-
-People that boost the server and get cool perks (boost and try for urself ;))) **boost** :gun:
-
-Level Roles
-
-Pretty explanatory, just talk :)
-
-
-
+Rules:
+Streamer Mode / Anonymous Mode is not allowed.
+Teaming/Stream Sniping is prohibited.
+Fighting off spawn till 80 players is allowed, you may finish the ongoing fight till 75 players alive.
+Fighting is allowed after 3rd zone is closed.
+In event of a storm surge, you may kill where necessary.
 
