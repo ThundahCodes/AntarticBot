@@ -1,10 +1,56 @@
 import discord
+import json
 import random
 import os 
 from discord.ext import commands 
 from discord.ext import tasks
+import datetime
+import asyncio
 
-client = commands.Bot(command_prefix = '>', case_insensitive=True)
+
+def get_prefix(client, message):
+    with open('prefixes.json', 'r') as f:
+        prefixes = json.load(f)
+
+    return prefixes[str(message.guild.id)]
+
+
+client = commands.Bot(command_prefix = get_prefix, case_insensitive=True)
+intents = discord.Intents.default()
+intents.members = True
+
+@client.event
+async def on_guild_join(guild):
+    with open('prefixes.json', 'r') as f:
+       prefixes = json.load(f)
+
+    prefixes[str(guild.id)] = '>'
+
+    with open('prefixes.json', 'w') as f:
+        json.dump(prefixes, f, indent=4)
+
+@client.event
+async def on_guild_remove(guild):
+    with open('prefixes.json', 'r') as f:
+       prefixes = json.load(f)
+
+    prefixes.pop(str(guild.id))
+
+    with open('prefixes.json', 'w') as f:
+        json.dump(prefixes, f, indent=4)
+
+@client.command()
+async def changeprefix(ctx, prefix):
+    with open('prefixes.json', 'r') as f:
+       prefixes = json.load(f)
+
+    prefixes[str(ctx.guild.id)] = prefix
+
+    with open('prefixes.json', 'w') as f:
+        json.dump(prefixes, f, indent=4)
+
+        await ctx.send(f'Prefix changed to: {prefix}')
+
 
 @client.event #When it's ready it does bla bla 
 async def on_ready(): 
@@ -15,7 +61,7 @@ async def on_ready():
 async def ping(ctx):    #when >ping says Pong! and  shows ms
     await ctx.send(f'Pong! {round(client.latency * 1000)}ms')
 
-@client.command(aliases=['8ball']) #magic 8 ball (aliases say that it can use these commands)
+@client.command() #magic 8 ball (aliases say that it can use these commands)
 async def _8ball(ctx, *, question):
     responses = ['It is certain.',
                  'It is decidedly so.',
@@ -38,12 +84,21 @@ async def _8ball(ctx, *, question):
                  'Very doubtful.']
     await ctx.send(f'Question: {question}\nAnswer: {random.choice(responses)}')
 
-f = open("rules.txt", "r")
-rules = f.readlines()
 
-@client.command(aliases=['rules'])
-async def rule(ctx, *, number):
-    await ctx.send(rules[int(number)-1])
+@client.command()
+async def customrules(ctx):
+    embed = discord.Embed(
+        title="Rules",
+        colour = ctx.author.colour
+    )
+    embed.add_field(name=":one:", value="Streamer Mode / Anonymous Mode is not allowed.", inline = True)
+    embed.add_field(name=":two:", value="Teaming/Stream Sniping is prohibited.", inline=True)
+    embed.add_field(name=":three:", value="Fighting off spawn till 80 players is allowed, you may finish the ongoing fight till 75 players alive.", inline=True)
+    embed.add_field(name=":four:", value="Fighting is allowed after 3rd zone is closed.", inline=True)
+    embed.add_field(name=":five:", value="In event of a storm surge, you may kill where necessary.", inline=True)
+    embed.set_thumbnail(url = str(ctx.guild.icon_url))
+    await ctx.send(embed=embed)
+
 
 @client.command()
 async def topic(ctx):
@@ -155,6 +210,7 @@ async def topic(ctx):
 @commands.has_permissions(administrator=True)
 async def clear(ctx, amount=100):  
     await ctx.channel.purge(limit=amount)
+    await ctx.send(f":white_check_mark: {amount} messages cleared.")
 
 @client.command()
 @commands.has_permissions(kick_members=True) 
@@ -183,7 +239,6 @@ async def unban(ctx, *, member):
              await ctx.send(f'Unbanned {user.mention}')
              return 
 
-            
 @client.command()
 @commands.has_permissions(kick_members=True)
 async def mute(ctx, member : discord.Member):
@@ -206,46 +261,135 @@ for filename in os.listdir('./cogs'):
     if filename.endswith('.py'):
         client.load_extension(f'cogs.{filename[:-3]}')
 
-on_message_words = ['Worthy', 'Worthyy', 'Worthyyz', 'worthy', 'worthyy', 'worthyyz', 'worthyz', 'Worthyz']
 
-@client.event
-async def on_message(message):
+@client.command()
+async def beer(ctx): 
+    await ctx.send("Cheers :beers:")
 
-    await client.process_commands(message)
-      
-    empty_array = []
-    modmail_channel = discord.utils.get(client.get_all_channels(), name="║🎫║mod-mail")
-    if message.author == client.user:
-        return 
-    if str(message.channel.type) == "private":
-        if message.attachments != empty_array:
-            files = message.attachments
-            await modmail_channel.send("[" + message.author.display_name + "]")
-            for file in files:
-                 await modmail_channel.send(file.url)
-        else:
-            await modmail_channel.send("[" + message.author.display_name + "] " + message.content)
-    elif str(message.channel) == "mod-mail" and message.content.startswith("<"):
-        member_object = message.mentions[0]
-        if message.attachments != empty_array:
-            files = message.attachments
-            await member_object.send("[" + message.author.display_name + "]")
-            for file in files:
-               await member_object.send(file.url)
-        else: 
-            index = message.content.index(" ")
-            string = message.content
-            mod_message = string[index:]
-
-        await member_object.send("[" + message.author.display_name + "]" + mod_message)
-
-
-@client.command(aliases=['drunk'])
-async def beer(ctx):
-    await ctx.send("Beer :beer:")
-
+@client.command()
+@commands.has_permissions(kick_members=True)
+async def whois(ctx, member : discord.Member):
+    embed = discord.Embed(title = member.name , description = member.mention , color = discord.Colour.blue())
+    embed.add_field(name = "ID", value = member.id , inline = True )
+    embed.set_thumbnail(url = member.avatar_url)
+    embed.set_footer(icon_url = ctx.author.avatar_url, text = f"Requested by {ctx.author.name}")
+    await ctx.send(embed=embed)
     
 
+@client.command()
+async def membercount(ctx):
+    a=ctx.guild.member_count
+    b=discord.Embed(title=f"Members in {ctx.guild.name}",description=a,color=discord.Color((0xffff00)))
+    await ctx.send(embed=b)
 
-client.run('heh')
+@client.command()
+async def serverinfo(ctx):
+    role_count = len(ctx.guild.roles)
+    count = ctx.guild.member_count
+    icon = str(ctx.guild.icon_url)
+    embed = discord.Embed(title="Server Info", color = ctx.author.colour)
+    embed.add_field(name = "Members", value = count)
+    embed.add_field(name = "Region", value = "Europe")
+    embed.add_field(name = "Roles", value = role_count)
+    embed.set_thumbnail(url = icon)
+    embed.set_footer(icon_url = ctx.author.avatar_url, text = f"Requested by {ctx.author.name}")
+    await ctx.send(embed=embed)
+
+@client.command()
+@commands.has_permissions(administrator=True)
+async def tournament(ctx, date, time):
+    embed = discord.Embed(title="Tournament", color = discord.Colour.blue())
+    embed.add_field(name = "Tourney Date", value = date)
+    embed.add_field(name = "Time", value = time)
+    embed.set_thumbnail(url = 'https://estnn.com/wp-content/uploads/2019/09/Fortnite-Solos-Cash-Cup-September-11-Recap-and-Results.jpg')
+    embed.set_footer(icon_url = ctx.author.avatar_url, text = f"Hosted by {ctx.author.name}")
+    await ctx.send(embed=embed)
+
+@client.command()
+@commands.has_permissions(administrator=True)
+async def giveaway(ctx):
+    await ctx.send("Let's start with the giveaway! Answer these question within 15 seconds!")
+
+    questions = ["Which channel should it be hosted in?",
+                 "What should be the duration of the giveaway? (s|m|h|d)",
+                 "What is the prize?"
+                ]
+    
+    answers = []
+
+    def check(m):
+        return m.author == ctx.author and m.channel == ctx.channel
+
+    for i in questions:
+        await ctx.send(i)
+
+        try:
+            msg = await client.wait_for('message', timeout=15.0, check=check)
+        except asyncio.TimeoutError:
+            await ctx.send("You didn't answer in time, please be quicker next time!")
+            return
+        else:
+            answers.append(msg.content)
+
+    try:
+        c_id = int(answers[0][2: -1])
+    except:
+        await ctx.send(f"You didn't mention a channel properly. Do it like this {ctx.channel.mention} next time")
+        return
+
+    channel = client.get_channel(c_id)
+
+    time = convert(answers[1])
+    if time == -1:
+        await ctx.send(f"You didn't answer with a proper unit!")
+        return
+    elif time == -2:
+        await ctx.send(f"Please enter an integer!")
+        return
+    prize = answers[2]
+
+    await ctx.send(f"The Giveaway will be in {channel.mention} and will last {answers[1]}")
+
+    embed = discord.Embed(title = 'Giveaway!', description = f"{prize}", color = ctx.author.color)
+
+    embed.add_field(name="Hosted by:", value = ctx.author.mention)
+
+    embed.set_footer(text=f"Ends {answers[1]} from now!")
+
+    my_msg = await channel.send(embed=embed)
+
+    await my_msg.add_reaction("🎉")
+
+    await asyncio.sleep(time)
+
+    new_msg = await channel.fetch_message(my_msg.id)
+
+    users = await new_msg.reactions[0].users().flatten()
+    
+    users.pop(users.index(client.user))
+
+    winner = random.choice(users)
+
+    await channel.send(f"Congratulations! {winner.mention} won {prize}!")
+
+
+def convert(time):
+    pos = ["s", "m", "h", "d"]
+
+    time_dict = {"s" : 1, "m" : 60, "h" : 3600, "d" : 3600*24}
+
+    unit = time[-1]
+
+    if unit not in pos:
+        return -1
+    try:
+        val = int(time[:-1])
+    except:
+        return -2
+
+    return val * time_dict[unit]
+
+
+
+client.run('ODE2MDQyMDA4NTAxODEzMjQ4.YD1MWA.LE_V6L4bQ9LCiDsfhKevitRP4-o')
 
