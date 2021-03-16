@@ -390,6 +390,12 @@ def convert(time):
     return val * time_dict[unit]
 
 
+@client.command()
+async def twitchping(ctx, name):
+    ping = ctx.guild.get_role('role')
+    embed = discord.Embed(title="Stream Happening!", color = discord.Colour.purple())
+    embed.add_field(name = f"Hey {role.mention}! {Name} is live now!")
+    await ctx.send(embed=embed)
 
 client.run('heh')
 
