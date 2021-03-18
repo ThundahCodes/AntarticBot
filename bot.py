@@ -6,7 +6,7 @@ from discord.ext import commands
 from discord.ext import tasks
 import datetime
 import asyncio
-
+import aiofiles
 
 def get_prefix(client, message):
     with open('prefixes.json', 'r') as f:
@@ -14,10 +14,11 @@ def get_prefix(client, message):
 
     return prefixes[str(message.guild.id)]
 
-
 client = commands.Bot(command_prefix = get_prefix, case_insensitive=True)
 intents = discord.Intents.default()
 intents.members = True
+client.ticket_configs = {}
+
 
 @client.event
 async def on_guild_join(guild):
@@ -56,6 +57,15 @@ async def changeprefix(ctx, prefix):
 async def on_ready(): 
     await client.change_presence(status=discord.Status.idle, activity=discord.Game('Screaming at >help'))
     print('Bot are ready. ')
+    for file in ["ticket_configs.txt"]:
+        async with aiofiles.open(file, mode="a") as temp:
+            pass
+
+    async with aiofiles.open("ticket_configs.txt", mode="r") as file:
+        lines = await file.readlines()
+        for line in lines:
+            data = line.split(' ')
+            client.ticket_configs[int(data[0])] = [int(data[1]), int(data[2]), int(data[3])]
 
 @client.command()
 async def ping(ctx):    #when >ping says Pong! and  shows ms
@@ -269,40 +279,64 @@ async def beer(ctx):
 @client.command()
 @commands.has_permissions(kick_members=True)
 async def whois(ctx, member : discord.Member):
+   
     embed = discord.Embed(title = member.name , description = member.mention , color = discord.Colour.blue())
+    
     embed.add_field(name = "ID", value = member.id , inline = True )
+    
     embed.set_thumbnail(url = member.avatar_url)
+    
     embed.set_footer(icon_url = ctx.author.avatar_url, text = f"Requested by {ctx.author.name}")
+    
     await ctx.send(embed=embed)
     
 
 @client.command()
 async def membercount(ctx):
+   
     a=ctx.guild.member_count
+   
     b=discord.Embed(title=f"Members in {ctx.guild.name}",description=a,color=discord.Color((0xffff00)))
+   
     await ctx.send(embed=b)
 
 @client.command()
 async def serverinfo(ctx):
+   
     role_count = len(ctx.guild.roles)
+    
     count = ctx.guild.member_count
+   
     icon = str(ctx.guild.icon_url)
+   
     embed = discord.Embed(title="Server Info", color = ctx.author.colour)
+    
     embed.add_field(name = "Members", value = count)
+    
     embed.add_field(name = "Region", value = "Europe")
+    
     embed.add_field(name = "Roles", value = role_count)
+    
     embed.set_thumbnail(url = icon)
+    
     embed.set_footer(icon_url = ctx.author.avatar_url, text = f"Requested by {ctx.author.name}")
+    
     await ctx.send(embed=embed)
 
 @client.command()
 @commands.has_permissions(administrator=True)
 async def tournament(ctx, date, time):
+    
     embed = discord.Embed(title="Tournament", color = discord.Colour.blue())
+    
     embed.add_field(name = "Tourney Date", value = date)
+    
     embed.add_field(name = "Time", value = time)
+    
     embed.set_thumbnail(url = 'https://estnn.com/wp-content/uploads/2019/09/Fortnite-Solos-Cash-Cup-September-11-Recap-and-Results.jpg')
+    
     embed.set_footer(icon_url = ctx.author.avatar_url, text = f"Hosted by {ctx.author.name}")
+    
     await ctx.send(embed=embed)
 
 @client.command()
@@ -389,5 +423,75 @@ def convert(time):
 
     return val * time_dict[unit]
 
-client.run('heh')
+@client.command()
+async def configure_ticket(ctx, msg: discord.Message=None, category: discord.CategoryChannel=None):
+    if msg is None or category is None:
+        await ctx.channel.send("Failed to configure the ticket as an argument was not given or was invalid")
+        return
 
+    client.ticket_configs[ctx.guild.id] = [msg.id, msg.channel.id, category.id] # this resets the config 
+
+    async with aiofiles.open("ticket_configs.txt", mode="r") as file:
+        data = await file.readlines()
+
+    async with aiofiles.open("ticket_configs.txt", mode="w") as file:
+        await file.write(f"{ctx.guild.id} {msg.id} {msg.channel.id} {category.id}\n")
+        
+        for line in data:
+            if int(line.split(" ")[0]) != ctx.guild.id:
+                await file.write(line)
+                
+
+        await msg.add_reaction(u"\U0001F3AB")
+        await ctx.channel.send("Succesfully configured the ticket system.")
+
+@client.event
+async def on_raw_reaction_add(payload):
+    if payload.member.id != client.user.id and str(payload.emoji) == u"\U0001F3AB":
+        msg_id, channel_id, category_id = client.ticket_configs[payload.guild_id]
+
+        if payload.message_id == msg_id:
+            guild = client.get_guild(payload.guild_id)
+
+            for category in guild.categories:
+                if category.id == category_id:
+                    break
+
+            channel = guild.get_channel(channel_id)
+
+            ticket_num = 1 if len(category.channels) == 0 else int(category.channels[-1].name.split("-")[-1]) + 1
+            ticket_channel = await category.create_text_channel(f"ticket: {ticket_num}", topic=f"A channel for ticket number {ticket_num}.", permission_synced=True)
+
+            await ticket_channel.set_permissions(payload.member, read_messages=True, send_messages=True)
+
+            message = await channel.fetch_message(msg_id)
+            await message.remove_reaction(payload.emoji, payload.member)
+
+            await ticket_channel.send(f"{payload.member.mention} Thank you for creating a ticket! Use **>close** to close your ticket")
+            
+            try:
+                await client.wait_for("message", check=lambda m: m.channel == ticket_channel and m.author == payload.member and m.content == ">close", timeout=3600)
+
+            except asyncio.TimeoutError:
+                await ticket_channel.delete()
+
+
+            else:
+                await ticket_channel.delete()
+                
+@client.command()
+async def ticket_config(ctx):
+    try:
+        msg_id, channel_id, category_id = client.ticket_configs[ctx.guild.id]
+
+    except KeyError:
+        await ctx.channel.send("You have not configured the ticket system yet.")
+
+    else:
+        embed = discord.Embed(title="Ticket System Configuration", color=discord.Color.green())
+        embed.description = f"**Reaction Message ID** : {msg_id}\n"
+        embed.description += f"**Ticket Category ID** : {category_id}\n\n"
+
+        await ctx.channel.send(embed=embed)
+        
+client.run('nt')
