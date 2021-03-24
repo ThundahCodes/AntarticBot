@@ -22,6 +22,8 @@ client.ticket_configs = {}
 
 @client.event
 async def on_guild_join(guild):
+    client.warnings[guild.id] = {}
+   
     with open('prefixes.json', 'r') as f:
        prefixes = json.load(f)
 
@@ -56,10 +58,35 @@ async def changeprefix(ctx, prefix):
 @client.event #When it's ready it does bla bla 
 async def on_ready(): 
     await client.change_presence(status=discord.Status.idle, activity=discord.Game('Screaming at >help'))
-    print('Bot are ready. ')
+    print('Bot is ready. ')
     for file in ["ticket_configs.txt"]:
         async with aiofiles.open(file, mode="a") as temp:
             pass
+    
+    for guild in client.guilds:
+        async with aiofiles.open(f"{guild.id}.txt", mode="a") as temp:
+            pass
+
+        client.warnings[guild.id] = {}
+            
+    for guild in client.guilds:
+        async with aiofiles.open(f"{guild.id}.txt", mode="r") as file:
+            lines = await file.readlines()
+
+            for line in lines:
+                data = line.split(" ")
+                member_id = int(data[0])
+                admin_id = int(data[1])
+                reason = " ".join(data[2:]).strip("\n")
+
+                try:
+                    client.warnings[guild.id][member_id][0] += 1
+                    client.warnings[guild.id][member_id][1].append((admin_id, reason))
+
+                except KeyError:
+                    client.warnings[guild.id][member_id] = [1, [(admin_id, reason)]]
+
+
 
     async with aiofiles.open("ticket_configs.txt", mode="r") as file:
         lines = await file.readlines()
@@ -467,6 +494,8 @@ async def on_raw_reaction_add(payload):
             message = await channel.fetch_message(msg_id)
             await message.remove_reaction(payload.emoji, payload.member)
 
+            
+
             await ticket_channel.send(f"{payload.member.mention} Thank you for creating a ticket! Use **>close** to close your ticket")
             
             try:
@@ -493,5 +522,80 @@ async def ticket_config(ctx):
         embed.description += f"**Ticket Category ID** : {category_id}\n\n"
 
         await ctx.channel.send(embed=embed)
-        
+
+@client.event
+async def on_member_join(member):
+    embed = discord.Embed(colour=0x95efcc ,description=f"Welcome the discord server! You are the {len(list(member.guild.members))} member!")
+    embed.set_thumbnail(url=f"{member.avatar_url}")
+    embed.set_author(name=f"{member.name}", icon_url=f"{member.avatar_url}")
+    embed.set_footer(text=f"{member.guild}", icon_url=f"{member.guild.icon_url}")
+    embed.timestamp = datetime.datetime.utcnow()
+
+    channel = await client.get_channel(id=822876236203425857)
+
+    await channel.send(embed=embed)
+
+client.warnings = {}
+
+@client.command()
+@commands.has_permissions(administrator=True)
+async def warn(ctx, member : discord.Member=None, *, reason=None):
+    if member is None:
+        return await ctx.send("The provided member could not be found or you forgot to provide one.")
+
+    if reason is None:
+        return await ctx.send("Please provide a reason for warning this user.")
+
+    try:
+        first_warning = False
+        client.warnings[ctx.guild.id][member.id][0] += 1
+        client.warnings[ctx.guild.id][member.id][1].append((ctx.author.id, reason))
+
+    except KeyError:
+        first_warning = True
+        client.warnings[ctx.guild.id][member.id] = [1, [(ctx.author.id, reason)]]
+
+    count = client.warnings[ctx.guild.id][member.id][0]
+
+    async with aiofiles.open(f"{ctx.guild.id}.txt", mode="a") as file:
+        await file.write(f"{member.id} {ctx.author.id} {reason}\n")
+    
+    await ctx.send(f"{member.mention} has {count} {'warning' if first_warning else 'warnings'}.")
+
+@client.command()
+@commands.has_permissions(administrator=True)
+async def warnings(ctx, member : discord.Member=None):
+    if member is None:
+        return await ctx.send("The provided member could not be found or you forgot to provide one.")
+
+    embed = discord.Embed(title=f"Displaying warnings for {member.name}", description="", colour=discord.Colour.red())
+    try:
+        i = 1
+        for admin_id, reason in client.warnings[ctx.guild.id][member.id][1]:
+            admin = ctx.guild.get_member(admin_id)
+            embed.description += f"**Warning {i}** given by: {admin.mention} for: *'{reason}'*.\n"
+            i += 1
+
+        await ctx.send(embed=embed)
+
+    except KeyError:
+        await ctx.send("This user has no warnings.")
+
+
+gifs = ["https://media1.tenor.com/images/b6d8a83eb652a30b95e87cf96a21e007/tenor.gif?itemid=10426943", 
+        "https://media1.tenor.com/images/e8f880b13c17d61810ac381b2f6a93c3/tenor.gif?itemid=17897236",
+        "https://i.gifer.com/2eNz.gif",
+        "https://i.gifer.com/RK9x.gif"]
+
+@client.command()
+async def slap(ctx, user, member : discord.Member=None):
+    embed = discord.Embed(colour=discord.Colour.green(), description=f"{ctx.author.mention} slapped {member.mention}!")
+    embed.set_image(url=f"{random.choice(gifs)}")
+    if user == ctx.author:
+        embed = discord.Embed(description=f"{ctx.author.mention} You wont slap yourself hard enough come here!", color = random.randint(0x000000, 0xFFFFFF))
+        embed.set_image(url=f"{random.choice(gifs)}")    
+    
+    await ctx.send(embed=embed)
+
+
 client.run('nt')
