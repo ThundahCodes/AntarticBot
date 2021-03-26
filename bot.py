@@ -7,6 +7,7 @@ from discord.ext import tasks
 import datetime
 import asyncio
 import aiofiles
+import youtube_dl
 
 def get_prefix(client, message):
     with open('prefixes.json', 'r') as f:
@@ -591,11 +592,57 @@ gifs = ["https://media1.tenor.com/images/b6d8a83eb652a30b95e87cf96a21e007/tenor.
 async def slap(ctx, user, member : discord.Member=None):
     embed = discord.Embed(colour=discord.Colour.green(), description=f"{ctx.author.mention} slapped {member.mention}!")
     embed.set_image(url=f"{random.choice(gifs)}")
-    if user == ctx.author:
-        embed = discord.Embed(description=f"{ctx.author.mention} You wont slap yourself hard enough come here!", color = random.randint(0x000000, 0xFFFFFF))
-        embed.set_image(url=f"{random.choice(gifs)}")    
-    
+    embed.set_footer(text=f"{ctx.author.mention} oof that was hard!"
+
+                   
     await ctx.send(embed=embed)
-
-
+                   
+@client.command()
+async def hug(ctx, user : discord.Member):
+    gifs = ["https://cdn.weeb.sh/images/H1ui__XDW.gif", "https://cdn.weeb.sh/images/B11CDkhqM.gif", "https://cdn.weeb.sh/images/rJv2H5adf.gif", "https://cdn.weeb.sh/images/SywetdQvZ.gif", "https://cdn.weeb.sh/images/BJCCd_7Pb.gif", "https://cdn.weeb.sh/images/Bk5haAocG.gif"]
+    embed = discord.Embed(description=f"{ctx.author.mention} hugs {user.mention}", color=random.randint(0x000000, 0xFFFFFF) 
+    embed.set_thumbnail(url=f"{random.choice(gifs)}"
+    embed.set_footer(text=f"{ctx.author.mention} awwww that was cute!"
+    await ctx.send(embed=embed)
+                     
+                     
+@client.command() 
+async def play(ctx, url : str, channel):
+        
+    voiceChannel = discord.utils.get(ctx.guild.voice_channels, name=channel)
+    voice = discord.utils.get(client.voice_clients, guild=ctx.guild) 
+    if not voice.is_connected():
+        await voiceChannel.connect()
+                   
+@client.command()
+async def leave(ctx):
+    voice = discord.utils.get(client.voice_clients, guild=ctx.guild)
+    if voice.is_connected():
+        await voice.disconnect()
+    else: 
+        await ctx.send("Connect me to a channel first!")
+                     
+@client.command()
+async def pause(ctx):
+    voice = discord.utils.get(client.voice_clients, guild=ctx.guild)
+    if voice.is_playing():
+        voice.pause()
+    else:
+        await ctx.send("There is no song playing!")
+                     
+@client.command()
+async def resume(ctx):
+    voice = discord.utils.get(client.voice_clients, guild=ctx.guild)
+    if voice.is_oaused():
+        voice.resume()
+    else:
+        await ctx.send("There is either no audio or it's playing right now!")
+                     
+@client.command()
+async def stop(ctx):
+    voice = discord.utils.get(client.voice_clients, guild=ctx.guild)
+    voice.stop()
+                     
+                     
+                     
 client.run('nt')
