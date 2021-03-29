@@ -484,18 +484,39 @@ async def warnings(ctx, member : discord.Member=None):
         await ctx.send("This user has no warnings.")
 
 
-gifs = ["https://media1.tenor.com/images/b6d8a83eb652a30b95e87cf96a21e007/tenor.gif?itemid=10426943", 
+@client.command()
+async def slap(ctx, member : discord.Member=None):
+    
+    gifs = ["https://media1.tenor.com/images/b6d8a83eb652a30b95e87cf96a21e007/tenor.gif?itemid=10426943", 
         "https://media1.tenor.com/images/e8f880b13c17d61810ac381b2f6a93c3/tenor.gif?itemid=17897236",
         "https://i.gifer.com/2eNz.gif",
         "https://i.gifer.com/RK9x.gif"]
 
-@client.command()
-async def slap(ctx, member : discord.Member=None):
-    
-    embed = discord.Embed(colour=discord.Colour.green(), description=f"{ctx.author.mention} slapped {member.mention}!")
+
+    embed = discord.Embed(colour=random.randint(0x000000, 0xFFFFFF), description=f"{ctx.author.mention} slapped {member.mention}!")
     
     embed.set_image(url=f"{random.choice(gifs)}")
     
     embed.set_footer(text="Woah easier next time!")
     
     await ctx.send(embed=embed)
+
+@client.command()
+async def hug(ctx, member : discord.Member=None):
+
+    gifs = ["https://tenor.com/SBEd.gif",
+            "https://tenor.com/boXzB.gif",
+            "https://tenor.com/uejf.gif",
+            "https://tenor.com/NhtE.gif",
+            "https://tenor.com/bh4d0.gif",
+            "https://tenor.com/7NZC.gif",
+    ]
+
+    embed = discord.Embed(colour=random.randint(0x000000, 0xFFFFFF), description=f"{ctx.author.mention} slapped {member.mention}!")
+
+    embed.set_image(url=f"{random.choice(gifs)}")
+
+    embed.set_footer(text="Awww cute!")
+
+    await ctx.send(embed=embed)
+
