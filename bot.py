@@ -7,7 +7,6 @@ from discord.ext import tasks
 import datetime
 import asyncio
 import aiofiles
-import youtube_dl
 
 def get_prefix(client, message):
     with open('prefixes.json', 'r') as f:
@@ -140,111 +139,12 @@ async def customrules(ctx):
 
 @client.command()
 async def topic(ctx):
-    questions = ['If you could make up a school subject, what would it be?',
-                 'Who makes you laugh the most?',
-                 'What is your favorite part about school/work? Your least favorite?',
-                 'What are the top three things on your bucket list?',
-                 'What has been the lowest point of your life?',
-                 'What would your ideal life look like?',
-                 'What is the most memorable lesson you learned from your parents?',
-                 'What scares you most about your future?',
-                 'What keeps you up at night?',
-                 'What is the best or worst trait you inherited from your parents?',
-                 'What motivates you most in life?',
-                 'What makes you feel discouraged?',
-                 'What is a significant event that has changed you?',
-                 'Who do you text the most?',
-                 'What was your favorite thing to do as a kid?',
-                 'What makes you laugh out loud?',
-                 'What are you most passionate about?',
-                 'What did you want to be growing up?',
-                 'What is the best pickup line you’ve ever used? Heard?',
-                 'Do you have any nicknames?',
-                 'What is your favorite weekend activity?',
-                 'Where do you see yourself living when you retire?',
-                 'Who was your favorite teacher and why?',
-                 'What is the silliest thing you’ve posted online?',
-                 'Are you a cat person or a dog person?',
-                 'What’s one movie you could watch over and over?',
-                 'If you won the lottery, what would be your first big spend?',
-                 'Where’s the most exotic place you’ve ever been?',
-                 'Would you rather be invisible or have X-ray vision?',
-                 'If you could have picked your own name, what would it be?',
-                 'What time period would you travel to?',
-                 'What is your least favorite chore?',
-                 'What is one thing you can’t live without?',
-                 'Who are you most thankful for and why?',
-                 'Where do you want to go on the next family vacation?',
-                 'What makes you most proud?',
-                 'What would be your ideal day?',
-                 'What did you think was the most challenging part of being a kid?',
-                 'What’s one thing you’ve won and how did you win it?',
-                 'What fun plans do you have for the weekend?',
-                 'How old were you when you had your first job(freelance or normal job)?',
-                 'How long can you go without checking your phone?',
-                 'Have you ever really kept a New Year’s resolution?',
-                 'What bad habits do you wish you could stop?',
-                 'Are you a jealous person?',
-                 'If someone offered to tell you your future, would you accept it?',
-                 'Who’s your biggest hero?',
-                 'If you were on death row, what would your last meal be?',
-                 'What makes you really angry?',
-                 'What is your spirit animal?',
-                 'What’s your guilty pleasure?',
-                 'What would you do if you were home alone and the power went out?',
-                 'What would your rock band group be called?',
-                 'Batman or Superman, who would win?',
-                 'What’s the worst thing one can say on a first date?',
-                 'What do you do to get rid of stress?',
-                 'What three words best describe you?',
-                 'What’s your favorite number? Why?',
-                 'What’s your favorite way to waste time?',
-                 'Do you have any pets? What are their names?',
-                 'What is something popular now that annoys you?',
-                 'Are you very active, or do you prefer to just relax in your free time?',
-                 'How did you meet your best friend?',
-                 'If you opened a business, what kind of business would it be?',
-                 'Are you a very organized person?',
-                 'How often do you stay up past 3 a.m.?',
-                 'What do you bring with you everywhere you go?',
-                 'Has anyone ever saved your life?',
-                 'What do you think/fear is hiding in the dark?',
-                 'What is the silliest fear you have?',
-                 'What smell brings back great memories?',
-                 'What outdoor activity haven’t you tried, but would like to?',
-                 'What’s the best sitcom past or present?',
-                 'What’s your favorite genre of movie?',
-                 'What’s the worst movie you have seen recently?',
-                 'What was the last song you listened to?',
-                 'What is your favorite game soundtrack?',
-                 'What is your favorite movie soundtrack?',
-                 'What song always puts you in a good mood?',
-                 'Are there any songs that always give you goosebumps?',
-                 'What is the most useful app on your phone?',
-                 'How often do you check your phone?',
-                 'What is the most annoying thing about your phone?',
-                 'What was your first smartphone? How did you feel when you got it?',
-                 'What is the strangest themed restaurant you have heard of?',
-                 'What’s the best way to travel? (Plane, car, train, etc.)',
-                 'What is your favorite piece of technology that you own?',
-                 'What is your favorite shirt?',
-                 'What are your goals for the next two years?',
-                 'How much do you plan for the future?',
-                 'What is the best way to stay motivated and complete goals?',
-                 'What do you want to do when you retire?',
-                 'Do you prefer summer or winter activities?',
-                 'What do you think of online education?',
-                 'What is the spiciest thing you have ever eaten?',
-                 'What food do you know you shouldn’t eat but can’t stop yourself?',
-                 'What food looks disgusting but tastes delicious?',
-                 'What do you think of homeschooling?',
-                 'What will the future of education be?',
-                 'What is your favorite holiday?',
-                 'What bands or types of music do you listen to when you exercise(if you do)?']
+    f = open("topic.txt", "r")
+    questions = f.readlines()
     await ctx.send(f'{random.choice(questions)}')
 
 
-@client.command()
+@client.command(aliases=["purge"])
 @commands.has_permissions(administrator=True)
 async def clear(ctx, amount=100):  
     await ctx.channel.purge(limit=amount)
@@ -475,6 +375,7 @@ async def configure_ticket(ctx, msg: discord.Message=None, category: discord.Cat
 
 @client.event
 async def on_raw_reaction_add(payload):
+    
     if payload.member.id != client.user.id and str(payload.emoji) == u"\U0001F3AB":
         msg_id, channel_id, category_id = client.ticket_configs[payload.guild_id]
 
@@ -589,60 +490,12 @@ gifs = ["https://media1.tenor.com/images/b6d8a83eb652a30b95e87cf96a21e007/tenor.
         "https://i.gifer.com/RK9x.gif"]
 
 @client.command()
-async def slap(ctx, user, member : discord.Member=None):
+async def slap(ctx, member : discord.Member=None):
+    
     embed = discord.Embed(colour=discord.Colour.green(), description=f"{ctx.author.mention} slapped {member.mention}!")
+    
     embed.set_image(url=f"{random.choice(gifs)}")
-    embed.set_footer(text=f"{ctx.author.mention} oof that was hard!"
-
-                   
+    
+    embed.set_footer(text="Woah easier next time!")
+    
     await ctx.send(embed=embed)
-                   
-@client.command()
-async def hug(ctx, user : discord.Member):
-    gifs = ["https://cdn.weeb.sh/images/H1ui__XDW.gif", "https://cdn.weeb.sh/images/B11CDkhqM.gif", "https://cdn.weeb.sh/images/rJv2H5adf.gif", "https://cdn.weeb.sh/images/SywetdQvZ.gif", "https://cdn.weeb.sh/images/BJCCd_7Pb.gif", "https://cdn.weeb.sh/images/Bk5haAocG.gif"]
-    embed = discord.Embed(description=f"{ctx.author.mention} hugs {user.mention}", color=random.randint(0x000000, 0xFFFFFF) 
-    embed.set_thumbnail(url=f"{random.choice(gifs)}"
-    embed.set_footer(text=f"{ctx.author.mention} awwww that was cute!"
-    await ctx.send(embed=embed)
-                     
-                     
-@client.command() 
-async def play(ctx, url : str, channel):
-        
-    voiceChannel = discord.utils.get(ctx.guild.voice_channels, name=channel)
-    voice = discord.utils.get(client.voice_clients, guild=ctx.guild) 
-    if not voice.is_connected():
-        await voiceChannel.connect()
-                   
-@client.command()
-async def leave(ctx):
-    voice = discord.utils.get(client.voice_clients, guild=ctx.guild)
-    if voice.is_connected():
-        await voice.disconnect()
-    else: 
-        await ctx.send("Connect me to a channel first!")
-                     
-@client.command()
-async def pause(ctx):
-    voice = discord.utils.get(client.voice_clients, guild=ctx.guild)
-    if voice.is_playing():
-        voice.pause()
-    else:
-        await ctx.send("There is no song playing!")
-                     
-@client.command()
-async def resume(ctx):
-    voice = discord.utils.get(client.voice_clients, guild=ctx.guild)
-    if voice.is_oaused():
-        voice.resume()
-    else:
-        await ctx.send("There is either no audio or it's playing right now!")
-                     
-@client.command()
-async def stop(ctx):
-    voice = discord.utils.get(client.voice_clients, guild=ctx.guild)
-    voice.stop()
-                     
-                     
-                     
-client.run('nt')
